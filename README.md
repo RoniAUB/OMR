@@ -4,6 +4,12 @@
 
 Automated scripts to clone and configure all major **Optical Music Recognition (OMR)** models from their original GitHub repositories. This eliminates the need to store large model files - instead, everything is cloned fresh from the source.
 
+**Features:**
+- 🔧 Automated setup of 12+ OMR models
+- 🏃 Run all models on the same input image for comparison
+- 📊 Collect and compare inference results
+- 🖥️ Cross-platform support (Windows, Linux, macOS)
+
 ## 🎵 Included Models
 
 | Model | Description | Original Repository | Python |
@@ -232,7 +238,85 @@ python main.py "path/to/sheet_music.png"
 
 ---
 
-## 🔧 Using the Models
+## 🏃 Running All Models (Inference Comparison)
+
+After setup, you can run **all models on the same input image** to compare their outputs!
+
+### Windows (PowerShell)
+
+```powershell
+# Run all models on an image
+.\run_inference.ps1 -Input "path\to\score.png"
+
+# Run specific models only
+.\run_inference.ps1 -Input "score.png" -Models "homr,oemer,legato"
+
+# Use GPU acceleration
+.\run_inference.ps1 -Input "score.png" -Device cuda
+
+# Custom output directory
+.\run_inference.ps1 -Input "score.png" -Output ".\my_results"
+
+# List available models
+.\run_inference.ps1 -ListModels
+```
+
+### Linux / macOS
+
+```bash
+# Make executable (first time only)
+chmod +x run_inference.sh
+
+# Run all models on an image
+./run_inference.sh --input path/to/score.png
+
+# Run specific models only
+./run_inference.sh --input score.png --models homr,oemer,legato
+
+# Use GPU acceleration
+./run_inference.sh --input score.png --device cuda
+
+# List available models
+./run_inference.sh --list
+```
+
+### Python (Direct)
+
+```bash
+# Run all models
+python run_all_inference.py --input score.png --output ./results
+
+# Run specific models
+python run_all_inference.py --input score.png --models homr,oemer,legato,Polyphonic-TrOMR
+
+# With GPU
+python run_all_inference.py --input score.png --device cuda
+
+# List models
+python run_all_inference.py --list-models
+```
+
+### Output Structure
+
+After running inference, results are saved in the output directory:
+
+```
+omr_results/
+├── inference_results.json    # Summary of all results
+├── homr/
+│   └── score.musicxml        # homr output
+├── oemer/
+│   └── score.musicxml        # oemer output
+├── legato/
+│   └── score_output.txt      # ABC notation output
+├── Polyphonic-TrOMR/
+│   └── score_output.txt      # TrOMR output
+└── ...
+```
+
+---
+
+## 🔧 Using Individual Models
 
 After setup, activate the environment for the model you want to use:
 
