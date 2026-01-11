@@ -1,16 +1,10 @@
-# OMR Models Collection - Automated Setup
+# OMR Models Automated Setup
 
 [![Setup OMR Models](https://github.com/RoniAUB/OMR/actions/workflows/setup-omr-models.yml/badge.svg)](https://github.com/RoniAUB/OMR/actions/workflows/setup-omr-models.yml)
 
 Automated scripts to clone and configure all major **Optical Music Recognition (OMR)** models from their original GitHub repositories. This eliminates the need to store large model files - instead, everything is cloned fresh from the source.
 
-**Features:**
-- 🔧 Automated setup of 12+ OMR models
-- 🏃 Run all models on the same input image for comparison
-- 📊 Collect and compare inference results
-- 🖥️ Cross-platform support (Windows, Linux, macOS)
-
-## 🎵 Included Models
+## Included Models
 
 | Model | Description | Original Repository | Python |
 |-------|-------------|---------------------|--------|
@@ -18,7 +12,7 @@ Automated scripts to clone and configure all major **Optical Music Recognition (
 | **oemer** | End-to-end OMR system | [meteo-team/oemer](https://github.com/meteo-team/oemer) | 3.10 |
 | **SMT** | Sheet Music Transformer | [antoniorv6/SMT](https://github.com/antoniorv6/SMT) | 3.10 |
 | **SMT-plusplus** | Sheet Music Transformer++ (deprecated, merged into SMT) | [antoniorv6/SMT-plusplus](https://github.com/antoniorv6/SMT-plusplus) | 3.10 |
-| **legato** ⚠️ | Large-scale End-to-end OMR (requires HuggingFace token) | [guang-yng/legato](https://github.com/guang-yng/legato) | 3.12 |
+| **legato** | Large-scale End-to-end OMR | [guang-yng/legato](https://github.com/guang-yng/legato) | 3.12 |
 | **Polyphonic-TrOMR** | Polyphonic Transformer OMR | [NetEase/Polyphonic-TrOMR](https://github.com/NetEase/Polyphonic-TrOMR) | 3.9 |
 | **tf-end-to-end** | TensorFlow CTC-based OMR (monophonic) | [OMR-Research/tf-end-to-end](https://github.com/OMR-Research/tf-end-to-end) | 3.8 |
 | **keras-retinanet** | RetinaNet object detection | [fizyr/keras-retinanet](https://github.com/fizyr/keras-retinanet) | 3.8 |
@@ -29,7 +23,7 @@ Automated scripts to clone and configure all major **Optical Music Recognition (
 
 ---
 
-## 📋 Prerequisites
+## Prerequisites
 
 Before running the setup scripts, ensure you have the following installed:
 
@@ -47,9 +41,9 @@ Before running the setup scripts, ensure you have the following installed:
 
 ---
 
-## 🚀 Installation & Usage
+## Installation & Usage
 
-### 📘 Windows
+### Windows
 
 #### Option 1: Double-click (Easiest)
 1. Download or clone this repository
@@ -83,7 +77,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 ---
 
-### 🐧 Linux
+### Linux
 
 ```bash
 # Clone this repository
@@ -111,7 +105,7 @@ chmod +x setup_all_omr_models.sh
 
 ---
 
-### 🍎 macOS
+### macOS
 
 ```bash
 # Clone this repository
@@ -144,7 +138,7 @@ chmod +x setup_all_omr_models.sh
 
 ---
 
-## 📁 Directory Structure After Setup
+## Directory Structure After Setup
 
 ```
 CodesOMR/                       # or your custom directory
@@ -164,9 +158,9 @@ CodesOMR/                       # or your custom directory
 
 ---
 
-## ⚠️ Special Setup Requirements
+## Special Setup Requirements
 
-### 🎼 Legato - HuggingFace Token Required
+### Legato - HuggingFace Token Required
 
 Legato uses models hosted on HuggingFace that require authentication. **You must complete these steps before running inference:**
 
@@ -207,7 +201,7 @@ PYTHONPATH=. python scripts/inference.py \
 
 ---
 
-### ☕ OpenOMR - Java Setup Required
+### OpenOMR - Java Setup Required
 
 OpenOMR is a Java-based application and requires:
 1. Java JDK 8 or higher
@@ -226,7 +220,7 @@ java -classpath "joone-engine.jar:jcommon-1.0.5.jar:jfreechart-1.0.1.jar:." \
 
 ---
 
-### 🎹 cadenCV - Simple Python OMR
+### cadenCV - Simple Python OMR
 
 cadenCV is a simpler OMR system that outputs MIDI files.
 
@@ -238,7 +232,7 @@ python main.py "path/to/sheet_music.png"
 
 ---
 
-## 🏃 Running All Models (Inference Comparison)
+## Running All Models (Inference Comparison)
 
 After setup, you can run **all models on the same input image** to compare their outputs!
 
@@ -316,7 +310,7 @@ omr_results/
 
 ---
 
-## 🔧 Using Individual Models
+## Using Individual Models
 
 After setup, activate the environment for the model you want to use:
 
@@ -370,86 +364,7 @@ PYTHONPATH=. python scripts/inference.py \
 
 ---
 
-## ⚠️ Troubleshooting
-
-### Common Issues
-
-<details>
-<summary><b>❌ Conda not found</b></summary>
-
-**Solution:**
-1. Ensure Miniconda/Anaconda is installed
-2. Add conda to your PATH:
-   - **Windows:** Restart terminal or run `conda init powershell`
-   - **Linux/macOS:** Run `conda init bash` or `conda init zsh`
-3. Restart your terminal
-
-</details>
-
-<details>
-<summary><b>❌ Git clone fails</b></summary>
-
-**Solution:**
-1. Check your internet connection
-2. Verify Git is installed: `git --version`
-3. Try cloning manually: `git clone <repo_url>`
-4. If behind a firewall, configure Git proxy settings
-
-</details>
-
-<details>
-<summary><b>❌ Package installation fails</b></summary>
-
-**Solution:**
-1. Some packages require specific Python versions (handled automatically)
-2. GPU packages may need CUDA installed
-3. Try installing packages manually:
-   ```bash
-   conda activate <model-name>
-   pip install -r requirements.txt
-   ```
-
-</details>
-
-<details>
-<summary><b>❌ Poetry installation fails (homr)</b></summary>
-
-**Solution:**
-```bash
-conda activate homr
-pip install poetry
-cd homr
-poetry install --no-interaction
-```
-
-</details>
-
-<details>
-<summary><b>❌ CUDA/GPU issues</b></summary>
-
-**Solution:**
-1. Update NVIDIA drivers
-2. Install CUDA Toolkit matching your PyTorch version
-3. For CPU-only usage, install CPU versions:
-   ```bash
-   pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
-   ```
-
-</details>
-
-<details>
-<summary><b>❌ Permission denied (Linux/macOS)</b></summary>
-
-**Solution:**
-```bash
-chmod +x setup_all_omr_models.sh
-```
-
-</details>
-
----
-
-## 🔄 Updating Models
+##  Updating Models
 
 To update all models to their latest versions:
 
@@ -469,15 +384,15 @@ git pull origin main  # or master, depending on the repo
 
 ## 📝 Notes
 
-- ✅ Each model has its own isolated conda environment (no dependency conflicts)
-- ✅ Model weights are downloaded from original repositories or Hugging Face
-- ✅ Scripts are idempotent - safe to run multiple times
-- ⚠️ Some models may require additional setup (datasets, weights, etc.)
-- 📖 Check each model's README for specific usage instructions
+- Each model has its own isolated conda environment (no dependency conflicts)
+- Model weights are downloaded from original repositories or Hugging Face
+- Scripts are idempotent - safe to run multiple times
+- Some models may require additional setup (datasets, weights, etc.)
+- Check each model's README for specific usage instructions
 
 ---
 
-## 🔗 Original Repositories
+## Original Repositories
 
 | Model | Repository |
 |-------|------------|
@@ -496,22 +411,5 @@ git pull origin main  # or master, depending on the repo
 
 ---
 
-## 📄 License
-
-This setup script repository is provided under the MIT License.
-
-Each OMR model retains its original license. Please refer to the LICENSE file in each repository for details.
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Feel free to:
-- Report issues
-- Suggest new models to include
-- Improve the setup scripts
-- Add documentation
-
----
 
 ## ⭐ Star this repo if you find it useful!
