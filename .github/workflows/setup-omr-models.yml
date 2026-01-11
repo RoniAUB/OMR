@@ -1,0 +1,137 @@
+name: Setup OMR Models
+
+on:
+  workflow_dispatch:
+    inputs:
+      models:
+        description: 'Models to setup (comma-separated, or "all")'
+        required: false
+        default: 'all'
+      python_version:
+        description: 'Default Python version'
+        required: false
+        default: '3.10'
+
+jobs:
+  setup-models:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Setup Miniconda
+      uses: conda-incubator/setup-miniconda@v3
+      with:
+        auto-update-conda: true
+        python-version: ${{ github.event.inputs.python_version }}
+        miniforge-variant: Mambaforge
+        use-mamba: true
+    
+    - name: Clone and Setup homr
+      if: contains(github.event.inputs.models, 'homr') || github.event.inputs.models == 'all'
+      shell: bash -el {0}
+      run: |
+        git clone --branch main https://github.com/liebharc/homr.git
+        mamba create -n homr python=3.11 -y
+        mamba activate homr
+        cd homr
+        pip install poetry
+        poetry install --no-interaction
+    
+    - name: Clone and Setup oemer
+      if: contains(github.event.inputs.models, 'oemer') || github.event.inputs.models == 'all'
+      shell: bash -el {0}
+      run: |
+        git clone --branch main https://github.com/meteo-team/oemer.git
+        mamba create -n oemer python=3.10 -y
+        mamba activate oemer
+        cd oemer
+        pip install -e .
+    
+    - name: Clone and Setup SMT
+      if: contains(github.event.inputs.models, 'SMT') || github.event.inputs.models == 'all'
+      shell: bash -el {0}
+      run: |
+        git clone --branch master https://github.com/antoniorv6/SMT.git
+        mamba create -n SMT python=3.10 -y
+        mamba activate SMT
+        cd SMT
+        pip install -r requirements.txt
+    
+    - name: Clone and Setup SMT-plusplus
+      if: contains(github.event.inputs.models, 'SMT-plusplus') || github.event.inputs.models == 'all'
+      shell: bash -el {0}
+      run: |
+        git clone --branch master https://github.com/antoniorv6/SMT-plusplus.git
+        mamba create -n SMT-plusplus python=3.10 -y
+        mamba activate SMT-plusplus
+        cd SMT-plusplus
+        pip install -r requirements.txt
+    
+    - name: Clone and Setup legato
+      if: contains(github.event.inputs.models, 'legato') || github.event.inputs.models == 'all'
+      shell: bash -el {0}
+      run: |
+        git clone --branch main https://github.com/guang-yng/legato.git
+        mamba create -n legato python=3.10 -y
+        mamba activate legato
+        cd legato
+        pip install -r requirements.txt
+    
+    - name: Clone and Setup Polyphonic-TrOMR
+      if: contains(github.event.inputs.models, 'Polyphonic-TrOMR') || github.event.inputs.models == 'all'
+      shell: bash -el {0}
+      run: |
+        git clone --branch master https://github.com/NetEase/Polyphonic-TrOMR.git
+        mamba create -n Polyphonic-TrOMR python=3.9 -y
+        mamba activate Polyphonic-TrOMR
+        cd Polyphonic-TrOMR
+        pip install -r requirements.txt
+    
+    - name: Clone and Setup tf-end-to-end
+      if: contains(github.event.inputs.models, 'tf-end-to-end') || github.event.inputs.models == 'all'
+      shell: bash -el {0}
+      run: |
+        git clone --branch master https://github.com/OMR-Research/tf-end-to-end.git
+        mamba create -n tf-end-to-end python=3.8 -y
+        mamba activate tf-end-to-end
+        pip install tensorflow numpy opencv-python
+    
+    - name: Clone and Setup keras-retinanet
+      if: contains(github.event.inputs.models, 'keras-retinanet') || github.event.inputs.models == 'all'
+      shell: bash -el {0}
+      run: |
+        git clone --branch main https://github.com/fizyr/keras-retinanet.git
+        mamba create -n keras-retinanet python=3.8 -y
+        mamba activate keras-retinanet
+        cd keras-retinanet
+        pip install -e .
+    
+    - name: Clone and Setup ObjectDetection-OMR
+      if: contains(github.event.inputs.models, 'ObjectDetection-OMR') || github.event.inputs.models == 'all'
+      shell: bash -el {0}
+      run: |
+        git clone --branch master https://github.com/vgilabert94/ObjectDetection-OMR.git
+        mamba create -n ObjectDetection-OMR python=3.8 -y
+        # Custom setup may be required - see repository README
+    
+    - name: Clone and Setup MarimbaBot
+      if: contains(github.event.inputs.models, 'MarimbaBot') || github.event.inputs.models == 'all'
+      shell: bash -el {0}
+      run: |
+        git clone --branch main https://github.com/UHHRobotics22-23/MarimbaBot.git
+        mamba create -n MarimbaBot python=3.10 -y
+        mamba activate MarimbaBot
+        cd MarimbaBot
+        pip install -r requirements.txt
+    
+    - name: List installed environments
+      shell: bash -el {0}
+      run: |
+        echo "=== Installed Conda Environments ==="
+        conda env list
