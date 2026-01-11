@@ -27,8 +27,9 @@ $Repositories = @(
         Url = "https://github.com/liebharc/homr.git"
         Branch = "main"
         PythonVersion = "3.11"
-        InstallMethod = "poetry"  # Uses Poetry
+        InstallMethod = "poetry"
         Description = "End-to-end OMR using vision transformers"
+        PostInstall = $null
     },
     @{
         Name = "oemer"
@@ -37,6 +38,7 @@ $Repositories = @(
         PythonVersion = "3.10"
         InstallMethod = "setup.py"
         Description = "End-to-end OMR system"
+        PostInstall = $null
     },
     @{
         Name = "SMT"
@@ -46,6 +48,7 @@ $Repositories = @(
         InstallMethod = "requirements"
         RequirementsFile = "requirements.txt"
         Description = "Sheet Music Transformer"
+        PostInstall = $null
     },
     @{
         Name = "SMT-plusplus"
@@ -54,16 +57,31 @@ $Repositories = @(
         PythonVersion = "3.10"
         InstallMethod = "requirements"
         RequirementsFile = "requirements.txt"
-        Description = "Sheet Music Transformer++"
+        Description = "Sheet Music Transformer++ (deprecated, merged into SMT)"
+        PostInstall = $null
     },
     @{
         Name = "legato"
         Url = "https://github.com/guang-yng/legato.git"
         Branch = "main"
-        PythonVersion = "3.10"
+        PythonVersion = "3.12"
         InstallMethod = "requirements"
         RequirementsFile = "requirements.txt"
-        Description = "Legato OMR model"
+        Description = "LEGATO: Large-Scale End-to-end OMR (requires HuggingFace token!)"
+        PostInstall = "huggingface_hub"
+        SpecialNote = @"
+    
+    ========================================================
+    IMPORTANT: Legato requires HuggingFace authentication!
+    ========================================================
+    After setup, run these commands:
+      conda activate legato
+      huggingface-cli login
+    
+    Then paste your HuggingFace token.
+    Get a token at: https://huggingface.co/settings/tokens
+    ========================================================
+"@
     },
     @{
         Name = "Polyphonic-TrOMR"
@@ -73,6 +91,7 @@ $Repositories = @(
         InstallMethod = "requirements"
         RequirementsFile = "requirements.txt"
         Description = "Polyphonic Transformer OMR"
+        PostInstall = $null
     },
     @{
         Name = "tf-end-to-end"
@@ -82,6 +101,7 @@ $Repositories = @(
         InstallMethod = "pip"
         Packages = @("tensorflow", "numpy", "opencv-python")
         Description = "TensorFlow end-to-end OMR for monophonic scores"
+        PostInstall = $null
     },
     @{
         Name = "keras-retinanet"
@@ -90,6 +110,7 @@ $Repositories = @(
         PythonVersion = "3.8"
         InstallMethod = "setup.py"
         Description = "Keras RetinaNet for object detection"
+        PostInstall = $null
     },
     @{
         Name = "ObjectDetection-OMR"
@@ -98,6 +119,7 @@ $Repositories = @(
         PythonVersion = "3.8"
         InstallMethod = "custom"
         Description = "Object detection for OMR using RetinaNet"
+        PostInstall = $null
     },
     @{
         Name = "MarimbaBot"
@@ -107,6 +129,35 @@ $Repositories = @(
         InstallMethod = "requirements"
         RequirementsFile = "requirements.txt"
         Description = "MarimbaBot robotics and vision"
+        PostInstall = $null
+    },
+    @{
+        Name = "OpenOMR"
+        Url = "https://github.com/anyati/OpenOMR.git"
+        Branch = "master"
+        PythonVersion = $null  # Java-based
+        InstallMethod = "java"
+        Description = "Java-based OMR using neural networks"
+        PostInstall = $null
+        SpecialNote = @"
+    
+    ========================================================
+    NOTE: OpenOMR is a Java application!
+    ========================================================
+    Requires: Java JDK 8+, Joone, JFreeChart, JCommon
+    See the repository README for Java setup instructions.
+    ========================================================
+"@
+    },
+    @{
+        Name = "cadenCV"
+        Url = "https://github.com/anyati/cadenCV.git"
+        Branch = "master"
+        PythonVersion = "3.9"
+        InstallMethod = "pip"
+        Packages = @("numpy", "matplotlib", "opencv-python", "MIDIUtil")
+        Description = "Python OMR system with MIDI output"
+        PostInstall = $null
     }
 )
 
@@ -176,6 +227,10 @@ function Install-Dependencies {
             else {
                 Write-Warning "Requirements file not found: $reqFile"
             }
+            # Install post-install packages (e.g., huggingface_hub for legato)
+            if ($Repo.PostInstall) {
+                conda run -n $envName pip install $Repo.PostInstall
+            }
         }
         "setup.py" {
             Push-Location $RepoPath
@@ -185,7 +240,7 @@ function Install-Dependencies {
         "poetry" {
             Push-Location $RepoPath
             conda run -n $envName pip install poetry
-            conda run -n $envName poetry install
+            conda run -n $envName poetry install --no-interaction
             Pop-Location
         }
         "pip" {
@@ -194,9 +249,18 @@ function Install-Dependencies {
                 conda run -n $envName pip install $packages
             }
         }
+        "java" {
+            Write-Warning "Java-based project. Skipping Python environment setup."
+            Write-Host "Please install Java JDK and required libraries manually." -ForegroundColor Yellow
+        }
         "custom" {
             Write-Warning "Custom installation required for $($Repo.Name). See repository README."
         }
+    }
+    
+    # Display special notes if any
+    if ($Repo.SpecialNote) {
+        Write-Host $Repo.SpecialNote -ForegroundColor Yellow
     }
     
     Write-Success "Dependencies installed for $($Repo.Name)"
@@ -257,8 +321,17 @@ foreach ($repo in $Repositories) {
     
     # Create environment and install dependencies
     if (-not $SkipEnv) {
-        if (New-CondaEnvironment -EnvName $repo.Name -PythonVersion $repo.PythonVersion) {
-            Install-Dependencies -Repo $repo -RepoPath $repoPath
+        # Skip conda environment for Java-based projects
+        if ($repo.InstallMethod -eq "java") {
+            Write-Warning "Skipping conda environment for Java-based project: $($repo.Name)"
+            if ($repo.SpecialNote) {
+                Write-Host $repo.SpecialNote -ForegroundColor Yellow
+            }
+        }
+        elseif ($repo.PythonVersion) {
+            if (New-CondaEnvironment -EnvName $repo.Name -PythonVersion $repo.PythonVersion) {
+                Install-Dependencies -Repo $repo -RepoPath $repoPath
+            }
         }
     }
 }
@@ -268,11 +341,25 @@ Write-Host "========================================================" -Foregroun
 Write-Host "  Setup Complete!" -ForegroundColor Green
 Write-Host "========================================================" -ForegroundColor Green
 Write-Host ""
-Write-Host "To activate an environment, use:" -ForegroundColor Yellow
+Write-Host "IMPORTANT NOTES:" -ForegroundColor Yellow
+Write-Host ""
+Write-Host "1. Legato requires HuggingFace authentication:" -ForegroundColor Yellow
+Write-Host "   conda activate legato" -ForegroundColor White
+Write-Host "   huggingface-cli login" -ForegroundColor White
+Write-Host "   (Get token at: https://huggingface.co/settings/tokens)" -ForegroundColor DarkGray
+Write-Host ""
+Write-Host "2. OpenOMR is a Java application - see its README for setup" -ForegroundColor Yellow
+Write-Host ""
+Write-Host "To activate an environment, use:" -ForegroundColor Cyan
 Write-Host "  conda activate <model-name>" -ForegroundColor White
 Write-Host ""
-Write-Host "Available environments:" -ForegroundColor Yellow
+Write-Host "Available environments:" -ForegroundColor Cyan
 foreach ($repo in $Repositories) {
-    Write-Host "  - $($repo.Name)" -ForegroundColor White
+    if ($repo.PythonVersion) {
+        Write-Host "  - $($repo.Name) (Python $($repo.PythonVersion))" -ForegroundColor White
+    } else {
+        Write-Host "  - $($repo.Name) (Java)" -ForegroundColor DarkGray
+    }
+}
 }
 Write-Host ""

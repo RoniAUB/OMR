@@ -1,6 +1,6 @@
 # OMR Models Collection - Automated Setup
 
-[![Setup OMR Models](https://github.com/YOUR_USERNAME/OMR/actions/workflows/setup-omr-models.yml/badge.svg)](https://github.com/YOUR_USERNAME/OMR/actions/workflows/setup-omr-models.yml)
+[![Setup OMR Models](https://github.com/RoniAUB/OMR/actions/workflows/setup-omr-models.yml/badge.svg)](https://github.com/RoniAUB/OMR/actions/workflows/setup-omr-models.yml)
 
 Automated scripts to clone and configure all major **Optical Music Recognition (OMR)** models from their original GitHub repositories. This eliminates the need to store large model files - instead, everything is cloned fresh from the source.
 
@@ -11,13 +11,15 @@ Automated scripts to clone and configure all major **Optical Music Recognition (
 | **homr** | End-to-end OMR using vision transformers | [liebharc/homr](https://github.com/liebharc/homr) | 3.11 |
 | **oemer** | End-to-end OMR system | [meteo-team/oemer](https://github.com/meteo-team/oemer) | 3.10 |
 | **SMT** | Sheet Music Transformer | [antoniorv6/SMT](https://github.com/antoniorv6/SMT) | 3.10 |
-| **SMT-plusplus** | Sheet Music Transformer++ | [antoniorv6/SMT-plusplus](https://github.com/antoniorv6/SMT-plusplus) | 3.10 |
-| **legato** | Legato OMR model | [guang-yng/legato](https://github.com/guang-yng/legato) | 3.10 |
+| **SMT-plusplus** | Sheet Music Transformer++ (deprecated, merged into SMT) | [antoniorv6/SMT-plusplus](https://github.com/antoniorv6/SMT-plusplus) | 3.10 |
+| **legato** ⚠️ | Large-scale End-to-end OMR (requires HuggingFace token) | [guang-yng/legato](https://github.com/guang-yng/legato) | 3.12 |
 | **Polyphonic-TrOMR** | Polyphonic Transformer OMR | [NetEase/Polyphonic-TrOMR](https://github.com/NetEase/Polyphonic-TrOMR) | 3.9 |
-| **tf-end-to-end** | TensorFlow CTC-based OMR | [OMR-Research/tf-end-to-end](https://github.com/OMR-Research/tf-end-to-end) | 3.8 |
+| **tf-end-to-end** | TensorFlow CTC-based OMR (monophonic) | [OMR-Research/tf-end-to-end](https://github.com/OMR-Research/tf-end-to-end) | 3.8 |
 | **keras-retinanet** | RetinaNet object detection | [fizyr/keras-retinanet](https://github.com/fizyr/keras-retinanet) | 3.8 |
-| **ObjectDetection-OMR** | Object detection for OMR | [vgilabert94/ObjectDetection-OMR](https://github.com/vgilabert94/ObjectDetection-OMR) | 3.8 |
+| **ObjectDetection-OMR** | Object detection for OMR using RetinaNet | [vgilabert94/ObjectDetection-OMR](https://github.com/vgilabert94/ObjectDetection-OMR) | 3.8 |
 | **MarimbaBot** | Robotics and music vision | [UHHRobotics22-23/MarimbaBot](https://github.com/UHHRobotics22-23/MarimbaBot) | 3.10 |
+| **OpenOMR** | Java-based OMR using neural networks | [anyati/OpenOMR](https://github.com/anyati/OpenOMR) | Java |
+| **cadenCV** | Python OMR system with MIDI output | [anyati/cadenCV](https://github.com/anyati/cadenCV) | 3.6 |
 
 ---
 
@@ -79,7 +81,7 @@ Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 ```bash
 # Clone this repository
-git clone https://github.com/YOUR_USERNAME/OMR.git
+git clone https://github.com/RoniAUB/OMR.git
 cd OMR
 
 # Make the script executable
@@ -107,7 +109,7 @@ chmod +x setup_all_omr_models.sh
 
 ```bash
 # Clone this repository
-git clone https://github.com/YOUR_USERNAME/OMR.git
+git clone https://github.com/RoniAUB/OMR.git
 cd OMR
 
 # Make the script executable
@@ -146,10 +148,86 @@ CodesOMR/                       # or your custom directory
 ├── SMT-plusplus/               # antoniorv6/SMT-plusplus
 ├── legato/                     # guang-yng/legato
 ├── Polyphonic-TrOMR/           # NetEase/Polyphonic-TrOMR
+├── OpenOMR/                    # anyati/OpenOMR (Java)
+├── cadenCV/                    # anyati/cadenCV
 ├── tf-end-to-end/              # OMR-Research/tf-end-to-end
 ├── keras-retinanet/            # fizyr/keras-retinanet
 ├── ObjectDetection-OMR/        # vgilabert94/ObjectDetection-OMR
 └── MarimbaBot/                 # UHHRobotics22-23/MarimbaBot
+```
+
+---
+
+## ⚠️ Special Setup Requirements
+
+### 🎼 Legato - HuggingFace Token Required
+
+Legato uses models hosted on HuggingFace that require authentication. **You must complete these steps before running inference:**
+
+#### Step 1: Create a HuggingFace Account
+1. Go to [huggingface.co](https://huggingface.co) and create an account
+2. Verify your email address
+
+#### Step 2: Create an Access Token
+1. Go to [huggingface.co/settings/tokens](https://huggingface.co/settings/tokens)
+2. Click **"New token"**
+3. Name it (e.g., "legato-access")
+4. Select **"Read"** access
+5. Click **"Generate token"**
+6. **Copy the token** (you won't see it again!)
+
+#### Step 3: Authenticate with HuggingFace CLI
+```bash
+conda activate legato
+pip install huggingface_hub
+huggingface-cli login
+# Paste your token when prompted
+```
+
+#### Step 4: Accept Model License (if required)
+Visit the model pages and accept any license agreements:
+- [guangyangmusic/legato](https://huggingface.co/guangyangmusic/legato)
+- [guangyangmusic/legato-small](https://huggingface.co/guangyangmusic/legato-small)
+
+#### Step 5: Run Inference
+```bash
+conda activate legato
+PYTHONPATH=. python scripts/inference.py \
+    --model_path guangyangmusic/legato \
+    --image_path path/to/image.png
+```
+
+> ⚠️ **Note:** Legato requires Python 3.12 and was tested with CUDA 12.4
+
+---
+
+### ☕ OpenOMR - Java Setup Required
+
+OpenOMR is a Java-based application and requires:
+1. Java JDK 8 or higher
+2. Additional libraries: Joone, JFreeChart, JCommon
+
+```bash
+# Install Java (if not installed)
+# Windows: Download from https://adoptium.net/
+# Linux: sudo apt install openjdk-11-jdk
+# macOS: brew install openjdk@11
+
+# Run OpenOMR (after downloading dependencies)
+java -classpath "joone-engine.jar:jcommon-1.0.5.jar:jfreechart-1.0.1.jar:." \
+     -Xmx256m openomr.openomr.SheetMusic
+```
+
+---
+
+### 🎹 cadenCV - Simple Python OMR
+
+cadenCV is a simpler OMR system that outputs MIDI files.
+
+```bash
+conda activate cadenCV
+pip install numpy matplotlib opencv-python MIDIUtil
+python main.py "path/to/sheet_music.png"
 ```
 
 ---
@@ -174,25 +252,36 @@ conda activate oemer
 #### homr
 ```bash
 conda activate homr
-python -m homr <input_image.png>
+poetry run homr <input_image.png>
+# Output: MusicXML file in the same directory
 ```
 
 #### oemer
 ```bash
 conda activate oemer
-python main.py -i <input_image.png>
+oemer <input_image.png>
+# Or: python main.py -i <input_image.png>
+# Output: MusicXML file and analyzed image
 ```
 
-#### SMT / SMT-plusplus
+#### SMT
 ```bash
 conda activate SMT
 python predict.py --image <input_image.png>
 ```
 
-#### legato
+#### Polyphonic-TrOMR
+```bash
+conda activate Polyphonic-TrOMR
+python ./tromr/inference.py <input_image.png>
+```
+
+#### legato (after HuggingFace setup)
 ```bash
 conda activate legato
-python run_legato_inference.py --image <input_image.png>
+PYTHONPATH=. python scripts/inference.py \
+    --model_path guangyangmusic/legato \
+    --image_path <input_image.png>
 ```
 
 ---
@@ -318,6 +407,8 @@ git pull origin main  # or master, depending on the repo
 | keras-retinanet | https://github.com/fizyr/keras-retinanet |
 | ObjectDetection-OMR | https://github.com/vgilabert94/ObjectDetection-OMR |
 | MarimbaBot | https://github.com/UHHRobotics22-23/MarimbaBot |
+| OpenOMR | https://github.com/anyati/OpenOMR |
+| cadenCV | https://github.com/anyati/cadenCV |
 
 ---
 

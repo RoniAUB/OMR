@@ -27,18 +27,20 @@ log_error() { echo -e "${RED}[-] $1${NC}"; }
 # ============================================================================
 declare -A REPOS
 
-# Format: "name|url|branch|python_version|install_method|extra"
+# Format: "name|url|branch|python_version|install_method|description"
 REPO_LIST=(
     "homr|https://github.com/liebharc/homr.git|main|3.11|poetry|End-to-end OMR using vision transformers"
     "oemer|https://github.com/meteo-team/oemer.git|main|3.10|setup|End-to-end OMR system"
     "SMT|https://github.com/antoniorv6/SMT.git|master|3.10|requirements|Sheet Music Transformer"
-    "SMT-plusplus|https://github.com/antoniorv6/SMT-plusplus.git|master|3.10|requirements|Sheet Music Transformer++"
-    "legato|https://github.com/guang-yng/legato.git|main|3.10|requirements|Legato OMR model"
+    "SMT-plusplus|https://github.com/antoniorv6/SMT-plusplus.git|master|3.10|requirements|Sheet Music Transformer++ (deprecated)"
+    "legato|https://github.com/guang-yng/legato.git|main|3.12|legato|LEGATO OMR (requires HuggingFace token!)"
     "Polyphonic-TrOMR|https://github.com/NetEase/Polyphonic-TrOMR.git|master|3.9|requirements|Polyphonic Transformer OMR"
     "tf-end-to-end|https://github.com/OMR-Research/tf-end-to-end.git|master|3.8|pip|TensorFlow end-to-end OMR"
     "keras-retinanet|https://github.com/fizyr/keras-retinanet.git|main|3.8|setup|Keras RetinaNet for object detection"
     "ObjectDetection-OMR|https://github.com/vgilabert94/ObjectDetection-OMR.git|master|3.8|custom|Object detection for OMR"
     "MarimbaBot|https://github.com/UHHRobotics22-23/MarimbaBot.git|main|3.10|requirements|MarimbaBot robotics and vision"
+    "OpenOMR|https://github.com/anyati/OpenOMR.git|master|java|java|Java-based OMR (requires Java JDK)"
+    "cadenCV|https://github.com/anyati/cadenCV.git|master|3.9|cadencv|Python OMR with MIDI output"
 )
 
 # ============================================================================
@@ -104,12 +106,39 @@ install_dependencies() {
         "poetry")
             pushd "$repo_path" > /dev/null
             conda run -n "$env_name" pip install poetry
-            conda run -n "$env_name" poetry install
+            conda run -n "$env_name" poetry install --no-interaction
             popd > /dev/null
             ;;
         "pip")
             # For tf-end-to-end
             conda run -n "$env_name" pip install tensorflow numpy opencv-python
+            ;;
+        "legato")
+            # Special handling for Legato - requires HuggingFace token
+            if [ -f "$repo_path/requirements.txt" ]; then
+                conda run -n "$env_name" pip install -r "$repo_path/requirements.txt"
+            fi
+            conda run -n "$env_name" pip install huggingface_hub
+            echo ""
+            echo "========================================================"
+            echo "  IMPORTANT: Legato requires HuggingFace authentication!"
+            echo "========================================================"
+            echo "  After setup, run:"
+            echo "    conda activate legato"
+            echo "    huggingface-cli login"
+            echo ""
+            echo "  Get a token at: https://huggingface.co/settings/tokens"
+            echo "========================================================"
+            echo ""
+            ;;
+        "cadencv")
+            # cadenCV specific packages
+            conda run -n "$env_name" pip install numpy matplotlib opencv-python MIDIUtil
+            ;;
+        "java")
+            log_warning "Java-based project. Skipping Python environment setup."
+            echo "Please install Java JDK and required libraries manually."
+            echo "See the repository README for setup instructions."
             ;;
         "custom")
             log_warning "Custom installation required for $env_name. See repository README."
@@ -190,8 +219,14 @@ for repo_info in "${REPO_LIST[@]}"; do
     
     # Create environment and install dependencies
     if [ "$SKIP_ENV" = false ]; then
-        create_conda_env "$name" "$python_version"
-        install_dependencies "$name" "$repo_path" "$install_method"
+        # Skip conda environment for Java-based projects
+        if [ "$install_method" = "java" ]; then
+            log_warning "Skipping conda environment for Java-based project: $name"
+            install_dependencies "$name" "$repo_path" "$install_method"
+        elif [ "$python_version" != "java" ]; then
+            create_conda_env "$name" "$python_version"
+            install_dependencies "$name" "$repo_path" "$install_method"
+        fi
     fi
 done
 
@@ -200,12 +235,25 @@ echo "========================================================"
 echo "  Setup Complete!"
 echo "========================================================"
 echo ""
-echo "To activate an environment, use:"
+echo -e "${YELLOW}IMPORTANT NOTES:${NC}"
+echo ""
+echo "1. Legato requires HuggingFace authentication:"
+echo "   conda activate legato"
+echo "   huggingface-cli login"
+echo "   (Get token at: https://huggingface.co/settings/tokens)"
+echo ""
+echo "2. OpenOMR is a Java application - see its README for setup"
+echo ""
+echo -e "${CYAN}To activate an environment, use:${NC}"
 echo "  conda activate <model-name>"
 echo ""
-echo "Available environments:"
+echo -e "${CYAN}Available environments:${NC}"
 for repo_info in "${REPO_LIST[@]}"; do
-    IFS='|' read -r name _ <<< "$repo_info"
-    echo "  - $name"
+    IFS='|' read -r name url branch python_version _ <<< "$repo_info"
+    if [ "$python_version" = "java" ]; then
+        echo "  - $name (Java)"
+    else
+        echo "  - $name (Python $python_version)"
+    fi
 done
 echo ""
