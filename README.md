@@ -53,7 +53,7 @@ Before running the setup scripts, ensure you have the following installed:
 #### Option 2: PowerShell
 ```powershell
 # Clone this repository
-git clone https://github.com/YOUR_USERNAME/OMR.git
+git clone https://github.com/RoniAUB/OMR.git
 cd OMR
 
 # Allow script execution (run once, requires admin)
